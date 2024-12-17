@@ -1,1 +1,5 @@
 .venv
+.env
+instance
+models/__pycache__
+routes/__pycache__

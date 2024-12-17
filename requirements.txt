@@ -1,4 +1,5 @@
 bcc==0.18.0
+bcrypt==4.2.1
 blinker==1.9.0
 Brlapi==0.8.3
 certifi==2020.6.20
@@ -14,6 +15,8 @@ defer==1.0.6
 distro==1.7.0
 evdev==1.4.0
 Flask==3.1.0
+Flask-Bcrypt==1.0.1
+Flask-SQLAlchemy==3.1.1
 greenlet==3.1.1
 hidpidaemon==18.4.6
 httplib2==0.20.2
@@ -62,6 +65,7 @@ requests==2.25.1
 SecretStorage==3.3.1
 sessioninstaller==0.0.0
 six==1.16.0
+SQLAlchemy==2.0.36
 system76driver==20.4.102
 systemd-python==234
 typing_extensions==4.12.2
