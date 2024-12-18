@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
-from models.user import User, db
+from services.user import UserService
 
 auth_bp = Blueprint('auth', __name__)
+user_service = UserService()
 
 @auth_bp.route('/signup', methods=['POST'])
 def signup():
@@ -9,14 +10,13 @@ def signup():
     username = data.get('username')
     password = data.get('password')
 
-    if not username or not password:
-        return jsonify({"error": "Username and password are required"}), 400
+    try:
+        new_user = user_service.create_user(username, password)
+        return jsonify({"message": "User created successfully", "username": new_user.username}), 201
+    except ValueError as e:
+        return jsonify({"message": str(e)}), 400
     
-    if User.query.filter_by(username=username).first():
-        return jsonify({"error": "Username already exists"}), 400
-    
-    User.create_user(username, password)
-    return jsonify({"message": "User registered successfully"}), 201
+
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
@@ -24,11 +24,8 @@ def login():
     username = data.get('username')
     password = data.get('password')
 
-    if not username or not password:
-        return jsonify({"error": "Username and password are required"}), 400
-
-    user = User.verify_user(username, password)
-    if not user:
-        return jsonify({"error": "Invalid username or password"}), 401
-
-    return jsonify({"message": f"Welcome, {username}!"}), 200
+    try:
+        user = user_service.verify_user(username, password)
+        return jsonify({"message": "Login successful", "user_id": user.id}), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 401
