@@ -1,5 +1,13 @@
 Flask
+<<<<<<< HEAD
 sqlalchemy
 flask_bcrypt
 flask_sqlalchemy
 python-dotenv
+=======
+flask_bcrypt
+flask_cors
+flask_sqlalchemy
+python-dotenv
+werkzeug
+>>>>>>> 81d9dbd ((feat): Updated requirements.txt)
