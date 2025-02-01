@@ -17,7 +17,7 @@
 
 ## Training and Coaching
 - [ ] **Coaching and Guidance**: Provide coaching and guidance to help users achieve their fitness goals.
-- [ ] **Virtual Training Rides**: Provide virtual training rides to help users improve their cycling skills.
+- [ ] **Virtual Training Rides**: Offer immersive virtual training rides to boost users' cycling performance.
 - [ ] **Structured Workouts**: Offer structured workouts to help users improve their fitness and performance.
 
 ## Nutrition and Recovery
