@@ -6,9 +6,15 @@ user_service = UserService()
 
 @auth_bp.route('/signup', methods=['POST'])
 def signup():
-    data = request.json
+    data = request.get_json()
     username = data.get('username')
     password = data.get('password')
+
+    if not username or not password:
+        return jsonify({"error": "Username and password are required"}), 400
+    
+    if len(username) < 3 or len(password) < 8:
+        return jsonify({"error": "Username must be at least 3 characters and password must be at least 8 characters."}), 400
 
     try:
         new_user = user_service.create_user(username, password)
@@ -18,9 +24,12 @@ def signup():
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    data = request.json
+    data = request.get_json()
     username = data.get('username')
     password = data.get('password')
+
+    if not username or not password:
+        return jsonify({"error": "Username and password are required"}), 400
 
     try:
         user = user_service.verify_user(username, password)
