@@ -15,8 +15,6 @@ def signup():
         return jsonify({"message": "User created successfully", "username": new_user.username}), 201
     except ValueError as e:
         return jsonify({"message": str(e)}), 400
-    
-
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
