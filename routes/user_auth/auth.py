@@ -17,10 +17,6 @@ def signup():
 @auth_bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
-    
-    print(f"Login attempt: username={username}, password={password}")
      
     try:
         user = user_service.verify_user(data['username'], data['password'])
