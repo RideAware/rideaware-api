@@ -10,7 +10,6 @@ class User(db.Model):
     
     def __init__(self, username, password, hash_password=True):
         self.username = username
-        # Optionally hash the password automatically.
         if hash_password:
             self.password = generate_password_hash(password, method="pbkdf2:sha256")
         else:
