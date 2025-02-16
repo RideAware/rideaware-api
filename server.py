@@ -1,7 +1,7 @@
 import os
 from flask import Flask
 from models import db, init_db 
-from routes.auth import auth_bp
+from routes.user_auth.auth import auth_bp
 from dotenv import load_dotenv
 from flask_cors import CORS
 

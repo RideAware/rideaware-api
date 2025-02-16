@@ -1,6 +1,6 @@
 # routes/auth.py
 from flask import Blueprint, request, jsonify
-from services.user import UserService
+from services.UserService.user import UserService
 
 auth_bp = Blueprint('auth', __name__)
 user_service = UserService()
