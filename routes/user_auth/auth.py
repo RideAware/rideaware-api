@@ -25,11 +25,15 @@ def signup():
 @auth_bp.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
+<<<<<<< HEAD
     username = data.get("username")
     password = data.get("password")
 
     print(f"Login attempt: username={username}, password={password}")
 
+=======
+     
+>>>>>>> 3ab162d8b88a23ad1d0ef5f72a3162bdd7f75ca8
     try:
         user = user_service.verify_user(username, password)
         session["user_id"] = user.id
