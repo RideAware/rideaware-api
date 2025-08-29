@@ -172,3 +172,18 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Flask-Migrate / Alembic
+# Keep migrations in Git, but ignore cache/compiled files
+migrations/__pycache__/
+migrations/*.pyc
+
+# Docker
+*.pid
+*.log
+docker-compose.override.yml
+.docker/
+.wheels/
+
+# VSCode / Editor configs
+.vscode/
