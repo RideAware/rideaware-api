@@ -9,9 +9,9 @@ class UserService:
         if not username or not password:
             raise ValueError("Username and password are required")
 
-        if len(username) < 3 or len(password) < 8:
+        if len(username) < 5 or len(password) < 12:
             raise ValueError(
-                "Username must be at least 3 characters and password must be at least 8 characters."
+                "Username must be at least 5 characters and password must be at least 12 characters."
             )
 
         existing_user = User.query.filter_by(username=username).first()
