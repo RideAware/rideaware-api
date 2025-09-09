@@ -8,6 +8,7 @@ class User(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)  # Add email field
     _password = db.Column("password", db.String(255), nullable=False)    
     
     profile = db.relationship('UserProfile', back_populates='user', uselist=False, cascade="all, delete-orphan")
@@ -29,11 +30,11 @@ class User(db.Model):
 @event.listens_for(User, 'after_insert')
 def create_user_profile(mapper, connection, target):
     connection.execute(
-        UserProfile.__table__.insert().values (
-            user_id = target.id,
-            first_name = "",
-            last_name = "",
-            bio = "",
-            profile_picture = ""
+        UserProfile.__table__.insert().values(
+            user_id=target.id,
+            first_name="",
+            last_name="",
+            bio="",
+            profile_picture=""
         )
     )
