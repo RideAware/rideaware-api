@@ -29,7 +29,7 @@ Ensure you have the following installed on your system:
 
 2. **Install Go Dependencies**  
    
-	```bash
+   ```bash
    go mod tidy
    ```
 
@@ -51,8 +51,10 @@ PG_USER=your_postgres_user
 PG_PASSWORD=your_postgres_password
 
 # Application Configuration
+# SECRET_KEY should be a random 32+ byte string; rotate on compromise.
 SECRET_KEY=your_secret_key_for_sessions
 PORT=8080
+PG_SSLMODE=require  # use "disable" only for local dev
 
 # Email Configuration (Optional)
 SMTP_SERVER=your_smtp_server
@@ -69,7 +71,7 @@ SMTP_PASSWORD=your_email_password
 go run main.go
 ```
 
-The application will be available at http://localhost:8080.
+The application will be available at [http://localhost:8080](http://localhost:8080).
 
 #### Production Mode
 
@@ -100,7 +102,7 @@ docker build -t rideaware-api .
 docker run -d -p 8080:8080 --env-file .env rideaware-api
 ```
 
-The application will be available at http://localhost:8080.
+The application will be available at [http://localhost:8080](http://localhost:8080).
 
 ### Example Dockerfile
 
