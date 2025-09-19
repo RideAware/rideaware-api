@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"log"
+	"net/mail"
 	"strings"
 
 	"github.com/rideaware/rideaware-api/models"
@@ -27,7 +28,7 @@ func (s *UserService) CreateUser(username, email, password string) (*models.User
 	}
 
 	// Basic email validation
-	if !strings.Contains(email, "@") {
+	if _, err := mail.ParseAddress(email); err != nil {
 		return nil, errors.New("invalid email format")
 	}
 
@@ -57,17 +58,20 @@ func (s *UserService) CreateUser(username, email, password string) (*models.User
 
 func (s *UserService) VerifyUser(username, password string) (*models.User, error) {
 	var user models.User
-	// Allow login with either username or email
-	if err := s.db.Where("username = ? OR email = ?", username, username).First(&user).Error; err != nil {
-		log.Printf("User not found: %s", username)
+	identifier := strings.TrimSpace(username)
+	if err := s.db.Where("username = ? OR email = ?", identifier, strings.ToLower(identifier)).First(&user).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("invalid username or password")
+		}
+		log.Printf("DB error during VerifyUser: %v", err)
 		return nil, errors.New("invalid username or password")
 	}
 
 	if !user.CheckPassword(password) {
-		log.Printf("Invalid password for user: %s", username)
+		log.Printf("Invalid credentials")
 		return nil, errors.New("invalid username or password")
 	}
 
-	log.Printf("User verified: %s", username)
+	log.Printf("User login succeeded")
 	return &user, nil
 }
