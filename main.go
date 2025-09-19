@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/gin-contrib/cors"
@@ -36,8 +37,22 @@ func main() {
 	r.Use(cors.Default())
 
 	// Session middleware
-	store := cookie.NewStore([]byte(os.Getenv("SECRET_KEY")))
-	r.Use(sessions.Sessions("session", store))
+	secret := os.Getenv("SECRET_KEY")
+	if len(secret) < 32 {
+		log.Fatal("SECRET_KEY must be at least 32 bytes")
+	}
+
+	authKey := []byte(secret)
+	encKey := []byte(secret[:32])
+	store := cookie.NewStore(authKey, encKey)
+	store.Options(sessions.Options{
+		Path:     "/",
+		MaxAge:   60 * 80 * 24 * 7, // 7 days
+		HttpOnly: true,
+		Secure:   os.Getenv("ENV") == "production",
+		SameSite: http.SameSiteLaxMode,
+	})
+	r.Use(sessions.Sessions("rideaware-session", store))
 
 	// Health check endpoint
 	r.GET("/health", func(c *gin.Context) {
