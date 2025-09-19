@@ -17,7 +17,6 @@ func InitDB() *gorm.DB {
 	user := os.Getenv("PG_USER")
 	password := os.Getenv("PG_PASSWORD")
 
-	// Try with quoted password
 	dsn := fmt.Sprintf(`host=%s port=%s user=%s password='%s' dbname=%s sslmode=disable`,
 		host, port, user, password, database)
 
