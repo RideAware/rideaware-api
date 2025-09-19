@@ -1,8 +1,0 @@
-Flask
-flask_bcrypt
-flask_cors
-flask_sqlalchemy
-python-dotenv
-werkzeug
-psycopg2-binary
-Flask-Migrate
