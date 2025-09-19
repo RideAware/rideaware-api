@@ -15,53 +15,78 @@ Whether you're building a structured training plan, analyzing ride data, or comp
 Ensure you have the following installed on your system:
 
 - Docker
-- Python 3.10 or later
-- pip
+- Go 1.21 or later
+- PostgreSQL (for local development, optional)
 
 ### Setting Up the Project
 
 1. **Clone the Repository**  
 
    ```bash
-   git clone https://github.com/VeloInnovate/rideaware-api.git
+   git clone https://github.com/rideaware/rideaware-api.git
    cd rideaware-api
    ```
 
-2. **Create a Virtual Environment**  
-   It is recommended to use a Python virtual environment to isolate dependencies.
+2. **Install Go Dependencies**  
    
 	```bash
-   python3 -m venv .venv
+   go mod tidy
    ```
 
-3. **Activate the Virtual Environment**
-   - On Linux/Mac:
-     ```bash
-     source .venv/bin/activate
-     ```
-   - On Windows:
-     ```cmd
-     .venv\Scripts\activate
-     ```
-
-4. **Install Requirements**
-   Install the required Python packages using pip:
+3. **Build the Application**
    ```bash
-   pip install -r requirements.txt
+   go build -o rideaware-api
    ```
 
 ### Configuration
 
 The application uses environment variables for configuration. Create a `.env` file in the root directory and define the following variables:
 
+```env
+# Database Configuration
+PG_HOST=your_postgres_host
+PG_PORT=5432
+PG_DATABASE=rideaware
+PG_USER=your_postgres_user
+PG_PASSWORD=your_postgres_password
+
+# Application Configuration
+SECRET_KEY=your_secret_key_for_sessions
+PORT=8080
+
+# Email Configuration (Optional)
+SMTP_SERVER=your_smtp_server
+SMTP_PORT=465
+SMTP_USER=your_email@domain.com
+SMTP_PASSWORD=your_email_password
 ```
-DATABASE=<your_database_connection_string>
+
+### Running the Application
+
+#### Development Mode
+
+```bash
+go run main.go
 ```
-- Replace `<your_database_connection_string>` with the URI of your database (e.g., SQLite, PostgreSQL).
+
+The application will be available at http://localhost:8080.
+
+#### Production Mode
+
+```bash
+./rideaware-api
+```
+
+### API Endpoints
+
+- `GET /health` - Health check endpoint
+- `POST /auth/signup` - User registration
+- `POST /auth/login` - User authentication
+- `POST /auth/logout` - User logout
 
 ### Running with Docker
 
-To run the application in a containerized environment, you can use the provided Dockerfile.
+To run the application in a containerized environment:
 
 1. **Build the Docker Image**:  
 
@@ -72,14 +97,60 @@ docker build -t rideaware-api .
 2. **Run the Container**
 
 ```bash
-docker run -d -p 5000:5000 --env-file .env rideaware-api
+docker run -d -p 8080:8080 --env-file .env rideaware-api
 ```
 
-The application will be available at http://127.0.0.1:5000.
+The application will be available at http://localhost:8080.
+
+### Example Dockerfile
+
+```dockerfile
+FROM golang:1.21-alpine AS builder
+
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+RUN go build -o rideaware-api
+
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates
+WORKDIR /root/
+
+COPY --from=builder /app/rideaware-api .
+CMD ["./rideaware-api"]
+```
+
+### Database Migration
+
+The application automatically runs database migrations on startup using GORM's AutoMigrate feature. This will create the necessary tables:
+
+- `users` - User accounts
+- `user_profiles` - User profile information
 
 ### Running Tests
 
-To be added.
+To run tests:
+
+```bash
+go test ./...
+```
+
+To run tests with coverage:
+
+```bash
+go test -cover ./...
+```
+
+### Development
+
+To add new features:
+
+1. Create models in the `models/` directory
+2. Add business logic in the `services/` directory  
+3. Define API routes in the `routes/` directory
+4. Register routes in `main.go`
 
 ## Contributing
 
@@ -88,4 +159,3 @@ Contributions are welcome! Please create a pull request or open an issue for any
 ## License
 
 This project is licensed under the AGPL-3.0 License.
-
