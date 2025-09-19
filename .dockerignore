@@ -10,3 +10,10 @@ tmp/
 *.log
 coverage.out
 rideaware-api
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+dist/
+build/
+node_modules/
