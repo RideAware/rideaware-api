@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -24,5 +25,19 @@ func InitDB() *gorm.DB {
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatal("Failed to get sql.DB from gorm:", err)
+	}
+
+	sqlDB.SetMaxOpenConns(25)
+	sqlDB.SetMaxIdleConns(25)
+	sqlDB.SetConnMaxLifetime(30 * time.Minute)
+
+	if err != nil {
+		log.Fatal("Database ping failed:", err)
+	}
+
 	return db
 }
