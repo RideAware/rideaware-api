@@ -1,6 +1,3 @@
-Here's a rewritten README for your Go version:
-
-```markdown
 # RideAware API
 
 <i>Train with Focus. Ride with Awareness</i>
