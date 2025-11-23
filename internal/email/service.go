@@ -1,6 +1,7 @@
 package email
 
 import (
+	"crypto/tls"
 	"fmt"
 	"log"
 	"net/smtp"
@@ -71,16 +72,70 @@ func (s *Service) sendEmail(to []string, subject, htmlBody string) error {
 	addr := fmt.Sprintf("%s:%d", s.smtpServer, s.smtpPort)
 	log.Printf("📧 Connecting to SMTP: %s", addr)
 
-	// Create SMTP authentication
+	// TLS configuration
+	tlsConfig := &tls.Config{
+		ServerName: s.smtpServer,
+	}
+
+	// Create connection
+	conn, err := tls.Dial("tcp", addr, tlsConfig)
+	if err != nil {
+		log.Printf("❌ TLS connection failed: %v", err)
+		return fmt.Errorf("failed to connect to SMTP server: %w", err)
+	}
+	defer conn.Close()
+
+	log.Printf("📧 TLS connection established")
+
+	// Create SMTP client
+	client, err := smtp.NewClient(conn, s.smtpServer)
+	if err != nil {
+		log.Printf("❌ SMTP client creation failed: %v", err)
+		return fmt.Errorf("failed to create SMTP client: %w", err)
+	}
+	defer client.Close()
+
+	log.Printf("📧 SMTP client created")
+
+	// Authenticate
 	auth := smtp.PlainAuth("", s.smtpUser, s.smtpPassword, s.smtpServer)
+	if err = client.Auth(auth); err != nil {
+		log.Printf("❌ SMTP authentication failed: %v", err)
+		return fmt.Errorf("SMTP authentication failed: %w", err)
+	}
+
+	log.Printf("📧 SMTP authentication successful")
 
 	// Send email
-	log.Printf("📧 Sending email via SMTP...")
-	err := smtp.SendMail(addr, auth, s.from, to, []byte(message))
-	if err != nil {
-		log.Printf("❌ Email send failed: %v", err)
-		return fmt.Errorf("failed to send email: %w", err)
+	if err = client.Mail(s.from); err != nil {
+		log.Printf("❌ SMTP Mail command failed: %v", err)
+		return fmt.Errorf("SMTP Mail command failed: %w", err)
 	}
+
+	if err = client.Rcpt(to[0]); err != nil {
+		log.Printf("❌ SMTP Rcpt command failed: %v", err)
+		return fmt.Errorf("SMTP Rcpt command failed: %w", err)
+	}
+
+	w, err := client.Data()
+	if err != nil {
+		log.Printf("❌ SMTP Data command failed: %v", err)
+		return fmt.Errorf("SMTP Data command failed: %w", err)
+	}
+
+	_, err = w.Write([]byte(message))
+	if err != nil {
+		log.Printf("❌ Writing email body failed: %v", err)
+		return fmt.Errorf("writing email body failed: %w", err)
+	}
+
+	err = w.Close()
+	if err != nil {
+		log.Printf("❌ Closing email data failed: %v", err)
+		return fmt.Errorf("closing email data failed: %w", err)
+	}
+
+	client.Quit()
 
 	log.Printf("✅ Email sent successfully to: %s", to[0])
 	return nil
@@ -88,7 +143,7 @@ func (s *Service) sendEmail(to []string, subject, htmlBody string) error {
 
 func (s *Service) SendPasswordResetEmail(email, username, resetLink string) error {
 	log.Printf("🔑 Sending password reset email to: %s", email)
-	
+
 	subject := "Reset Your RideAware Password"
 	htmlBody := fmt.Sprintf(`
 		<!DOCTYPE html>
@@ -128,7 +183,7 @@ func (s *Service) SendPasswordResetEmail(email, username, resetLink string) erro
 
 func (s *Service) SendWelcomeEmail(email, username string) error {
 	log.Printf("👋 Sending welcome email to: %s", email)
-	
+
 	subject := "Welcome to RideAware"
 	htmlBody := fmt.Sprintf(`
 		<!DOCTYPE html>
