@@ -15,6 +15,8 @@ IMAGE_TAG="latest"
 NO_CACHE=false
 RUN_CONTAINER=false
 CONTAINER_NAME="rideaware-api"
+HOST_PORT="5000"
+CONTAINER_PORT="5000"
 
 # Help function
 show_help() {
@@ -26,13 +28,17 @@ OPTIONS:
   -n, --name NAME         Image name (default: rideaware)
   -r, --run               Run container after build
   -c, --container NAME    Container name when running (default: rideaware-api)
+  -p, --port PORT         Host port mapping (default: 5000)
+                          Format: HOST:CONTAINER or just HOST (uses same for container)
   --no-cache              Build without cache
   -h, --help              Show this help message
 
 EXAMPLES:
   $0                              # Build as rideaware:latest
   $0 -t v1.0                      # Build as rideaware:v1.0
-  $0 -t dev --run                 # Build and run
+  $0 -t dev --run                 # Build and run on port 5000
+  $0 -t dev --run -p 5010         # Build and run on port 5010
+  $0 -t dev --run -p 5010:5000    # Map host 5010 to container 5000
   $0 --no-cache -t prod           # Build without cache as rideaware:prod
 
 EOF
@@ -56,6 +62,18 @@ while [[ $# -gt 0 ]]; do
 			;;
 		-c|--container)
 			CONTAINER_NAME="$2"
+			shift 2
+			;;
+		-p|--port)
+			PORT_MAPPING="$2"
+			# Parse port mapping
+			if [[ $PORT_MAPPING == *":"* ]]; then
+				HOST_PORT="${PORT_MAPPING%%:*}"
+				CONTAINER_PORT="${PORT_MAPPING##*:}"
+			else
+				HOST_PORT="$PORT_MAPPING"
+				CONTAINER_PORT="$PORT_MAPPING"
+			fi
 			shift 2
 			;;
 		--no-cache)
@@ -104,13 +122,23 @@ cleanup_container() {
 	return 0
 }
 
+# Function to check if port is in use
+check_port() {
+	local port=$1
+	if lsof -i :$port &>/dev/null; then
+		return 0  # Port is in use
+	else
+		return 1  # Port is free
+	fi
+}
+
 echo -e "${BLUE}╔════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║        Building Podman Image           ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════╝${NC}"
 echo -e "${YELLOW}Image: $FULL_IMAGE${NC}"
 echo ""
 
-if ! podman build $BUILD_ARGS -f docker/Dockerfile -t "$FULL_IMAGE" .; then
+if ! podman build $BUILD_ARGS -f Containerfile -t "$FULL_IMAGE" .; then
 	echo -e "${RED}✗ Build failed${NC}"
 	exit 1
 fi
@@ -131,6 +159,13 @@ if [ "$RUN_CONTAINER" = true ]; then
 	echo -e "${BLUE}║      Starting Container               ║${NC}"
 	echo -e "${BLUE}╚════════════════════════════════════════╝${NC}"
 
+	# Check if host port is in use
+	if check_port "$HOST_PORT"; then
+		echo -e "${RED}✗ Port $HOST_PORT is already in use${NC}"
+		echo -e "${YELLOW}Use a different port: $0 -t $IMAGE_TAG --run -p <PORT>${NC}"
+		exit 1
+	fi
+
 	# Cleanup existing container
 	if ! cleanup_container "$CONTAINER_NAME"; then
 		echo -e "${RED}✗ Failed to clean up existing container${NC}"
@@ -139,10 +174,12 @@ if [ "$RUN_CONTAINER" = true ]; then
 
 	echo ""
 	echo "Starting new container: $CONTAINER_NAME"
+	echo "Port mapping: $HOST_PORT:$CONTAINER_PORT"
 
 	if podman run -d \
 		--name "$CONTAINER_NAME" \
-		-p 5000:5000 \
+		-e PORT="$CONTAINER_PORT" \
+		-p "$HOST_PORT:$CONTAINER_PORT" \
 		--env-file .env \
 		"$FULL_IMAGE"; then
 		echo -e "${GREEN}✓ Container running: $CONTAINER_NAME${NC}"
@@ -155,19 +192,20 @@ if [ "$RUN_CONTAINER" = true ]; then
 		podman logs "$CONTAINER_NAME"
 		echo ""
 
-		echo -e "${GREEN}API available at: http://localhost:5000${NC}"
+		echo -e "${GREEN}API available at: http://localhost:$HOST_PORT${NC}"
 		echo -e "${YELLOW}To view logs: podman logs -f $CONTAINER_NAME${NC}"
 		echo -e "${YELLOW}To stop: podman kill $CONTAINER_NAME${NC}"
+		echo -e "${YELLOW}To remove: podman rm $CONTAINER_NAME${NC}"
 	else
 		echo -e "${RED}✗ Failed to start container${NC}"
 		exit 1
 	fi
 else
 	echo -e "${YELLOW}To run the container:${NC}"
-	echo "  podman run -d --name $CONTAINER_NAME -p 5000:5000 --env-file .env $FULL_IMAGE"
+	echo "  podman run -d --name $CONTAINER_NAME -e PORT=$CONTAINER_PORT -p $HOST_PORT:$CONTAINER_PORT --env-file .env $FULL_IMAGE"
 	echo ""
 	echo -e "${YELLOW}Or use this script with --run:${NC}"
-	echo "  $0 -t $IMAGE_TAG --run"
+	echo "  $0 -t $IMAGE_TAG --run -p $HOST_PORT"
 fi
 
 echo ""
