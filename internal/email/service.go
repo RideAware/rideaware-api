@@ -2,6 +2,7 @@ package email
 
 import (
 	"fmt"
+	"log"
 	"net/smtp"
 	"os"
 	"strconv"
@@ -43,6 +44,8 @@ func NewService() *Service {
 		from = "noreply@rideaware.app"
 	}
 
+	log.Printf("📧 Email service initialized: %s@%s:%d", smtpUser, smtpServer, port)
+
 	return &Service{
 		smtpServer:   smtpServer,
 		smtpPort:     port,
@@ -53,6 +56,8 @@ func NewService() *Service {
 }
 
 func (s *Service) sendEmail(to []string, subject, htmlBody string) error {
+	log.Printf("📧 Preparing to send email to: %s (Subject: %s)", to[0], subject)
+
 	// Create message
 	headers := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=\"UTF-8\"\r\n\r\n",
 		s.from,
@@ -64,20 +69,26 @@ func (s *Service) sendEmail(to []string, subject, htmlBody string) error {
 
 	// SMTP server address
 	addr := fmt.Sprintf("%s:%d", s.smtpServer, s.smtpPort)
+	log.Printf("📧 Connecting to SMTP: %s", addr)
 
 	// Create SMTP authentication
 	auth := smtp.PlainAuth("", s.smtpUser, s.smtpPassword, s.smtpServer)
 
 	// Send email
+	log.Printf("📧 Sending email via SMTP...")
 	err := smtp.SendMail(addr, auth, s.from, to, []byte(message))
 	if err != nil {
+		log.Printf("❌ Email send failed: %v", err)
 		return fmt.Errorf("failed to send email: %w", err)
 	}
 
+	log.Printf("✅ Email sent successfully to: %s", to[0])
 	return nil
 }
 
 func (s *Service) SendPasswordResetEmail(email, username, resetLink string) error {
+	log.Printf("🔑 Sending password reset email to: %s", email)
+	
 	subject := "Reset Your RideAware Password"
 	htmlBody := fmt.Sprintf(`
 		<!DOCTYPE html>
@@ -116,6 +127,8 @@ func (s *Service) SendPasswordResetEmail(email, username, resetLink string) erro
 }
 
 func (s *Service) SendWelcomeEmail(email, username string) error {
+	log.Printf("👋 Sending welcome email to: %s", email)
+	
 	subject := "Welcome to RideAware"
 	htmlBody := fmt.Sprintf(`
 		<!DOCTYPE html>
@@ -160,5 +173,6 @@ func (s *Service) SendWelcomeEmail(email, username string) error {
 }
 
 func (s *Service) SendNewsletterEmail(email, subject, htmlBody string) error {
+	log.Printf("📬 Sending newsletter email to: %s", email)
 	return s.sendEmail([]string{email}, subject, htmlBody)
 }
