@@ -95,3 +95,31 @@ func VerifyToken(tokenString string) (*CustomClaims, error) {
 
 	return claims, nil
 }
+
+func VerifyRefreshToken(tokenString string) (*CustomClaims, error) {
+	claims, err := VerifyToken(tokenString)
+	if err != nil {
+		return nil, err
+	}
+
+	// Verify it's actually a refresh token
+	if claims.TokenType != "refresh" {
+		return nil, fmt.Errorf("token is not a refresh token")
+	}
+
+	return claims, nil
+}
+
+func VerifyAccessToken(tokenString string) (*CustomClaims, error) {
+	claims, err := VerifyToken(tokenString)
+	if err != nil {
+		return nil, err
+	}
+
+	// Verify it's actually an access token
+	if claims.TokenType != "access" {
+		return nil, fmt.Errorf("token is not an access token")
+	}
+
+	return claims, nil
+}
