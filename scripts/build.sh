@@ -17,6 +17,7 @@ RUN_CONTAINER=false
 CONTAINER_NAME="rideaware-api"
 HOST_PORT="5000"
 CONTAINER_PORT="5000"
+DOCKERFILE="Dockerfile"
 
 # Help function
 show_help() {
@@ -136,9 +137,10 @@ echo -e "${BLUE}╔════════════════════�
 echo -e "${BLUE}║        Building Podman Image           ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════╝${NC}"
 echo -e "${YELLOW}Image: $FULL_IMAGE${NC}"
+echo -e "${YELLOW}Dockerfile: $DOCKERFILE${NC}"
 echo ""
 
-if ! podman build $BUILD_ARGS -f Containerfile -t "$FULL_IMAGE" .; then
+if ! podman build $BUILD_ARGS -f "$DOCKERFILE" -t "$FULL_IMAGE" .; then
 	echo -e "${RED}✗ Build failed${NC}"
 	exit 1
 fi
