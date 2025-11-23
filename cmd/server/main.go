@@ -14,7 +14,7 @@ import (
 	"rideaware/internal/auth"
 	"rideaware/internal/config"
 	"rideaware/internal/equipment"
-	"rideaware/internal/middlewares"
+	"rideaware/internal/middleware"
 	"rideaware/internal/user"
 	"rideaware/pkg/database"
 )
@@ -101,7 +101,7 @@ func setupRoutes(r *chi.Mux) {
 	r.Post("/refresh-token", authHandler.RefreshToken)
 
 	// Protected routes
-	authMiddleware := middlewares.NewAuthMiddleware()
+	authMiddleware := middleware.NewAuthMiddleware()
 	r.Route("/protected", func(r chi.Router) {
 		r.Use(authMiddleware.ProtectedRoute)
 
