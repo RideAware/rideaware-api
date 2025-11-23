@@ -69,17 +69,17 @@ func setupRoutes(r *chi.Mux) {
 	// Public routes
 	r.Get("/health", healthCheck)
 
-	// Auth routes
+	// Auth routes - REMOVED /api/ prefix
 	authHandler := auth.NewHandler()
-	r.Post("/api/signup", authHandler.Signup)
-	r.Post("/api/login", authHandler.Login)
-	r.Post("/api/logout", authHandler.Logout)
-	r.Post("/api/password-reset/request", authHandler.RequestPasswordReset)
-	r.Post("/api/password-reset/confirm", authHandler.ConfirmPasswordReset)
+	r.Post("/signup", authHandler.Signup)
+	r.Post("/login", authHandler.Login)
+	r.Post("/logout", authHandler.Logout)
+	r.Post("/password-reset/request", authHandler.RequestPasswordReset)
+	r.Post("/password-reset/confirm", authHandler.ConfirmPasswordReset)
 
-	// Protected routes
+	// Protected routes - REMOVED /api/ prefix
 	authMiddleware := middleware.NewAuthMiddleware()
-	r.Route("/api/protected", func(r chi.Router) {
+	r.Route("/protected", func(r chi.Router) {
 		r.Use(authMiddleware.ProtectedRoute)
 
 		// User routes
