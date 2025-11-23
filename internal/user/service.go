@@ -4,6 +4,8 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
+	"fmt"
+	"os"
 	"regexp"
 	"time"
 
@@ -77,7 +79,6 @@ func (s *Service) VerifyUser(username, password string) (*User, error) {
 func (s *Service) RequestPasswordReset(email string) error {
 	user, err := s.repo.GetUserByEmail(email)
 	if err != nil {
-		// Don't leak if email exists
 		return nil
 	}
 
@@ -96,7 +97,12 @@ func (s *Service) RequestPasswordReset(email string) error {
 		return err
 	}
 
-	resetLink := "https://rideaware.app/reset-password?token=" + token
+	appURL := os.Getenv("APP_URL")
+	if appURL == "" {
+		appURL = "https://dev.rideaware.org"
+	}
+
+	resetLink := fmt.Sprintf("%s/reset-password?token=%s", appURL, token)
 	return s.email.SendPasswordResetEmail(user.Email, user.Username, resetLink)
 }
 
@@ -144,17 +150,14 @@ func (s *Service) ResetPassword(token, newPassword string) error {
 	return tx.Commit().Error
 }
 
-// GetUserByID retrieves a user with their profile
 func (s *Service) GetUserByID(userID uint) (*User, error) {
 	return s.repo.GetUserByID(userID)
 }
 
-// UpdateUser saves user changes
 func (s *Service) UpdateUser(user *User) error {
 	return s.repo.UpdateUser(user)
 }
 
-// Helper functions
 func isValidEmail(email string) bool {
 	regex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 	return regex.MatchString(email)
