@@ -144,6 +144,16 @@ func (s *Service) ResetPassword(token, newPassword string) error {
 	return tx.Commit().Error
 }
 
+// GetUserByID retrieves a user with their profile
+func (s *Service) GetUserByID(userID uint) (*User, error) {
+	return s.repo.GetUserByID(userID)
+}
+
+// UpdateUser saves user changes
+func (s *Service) UpdateUser(user *User) error {
+	return s.repo.UpdateUser(user)
+}
+
 // Helper functions
 func isValidEmail(email string) bool {
 	regex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
