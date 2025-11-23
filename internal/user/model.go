@@ -17,14 +17,14 @@ type User struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 
-	Profile        *Profile         `gorm:"foreignKey:UserID;constraint:OnDelete:Cascade" json:"profile,omitempty"`
-	PasswordResets []PasswordReset  `gorm:"foreignKey:UserID;constraint:OnDelete:Cascade" json:"password_resets,omitempty"`
-	Sessions       []Session        `gorm:"foreignKey:UserID;constraint:OnDelete:Cascade" json:"sessions,omitempty"`
+	Profile        *Profile         `gorm:"foreignKey:UserID;references:ID" json:"profile,omitempty"`
+	PasswordResets []PasswordReset  `gorm:"foreignKey:UserID;references:ID" json:"password_resets,omitempty"`
+	Sessions       []Session        `gorm:"foreignKey:UserID;references:ID" json:"sessions,omitempty"`
 }
 
 type Profile struct {
 	ID             uint      `gorm:"primaryKey" json:"id"`
-	UserID         uint      `gorm:"not null;uniqueIndex" json:"user_id"`
+	UserID         uint      `gorm:"not null;uniqueIndex;index" json:"user_id"`
 	FirstName      string    `gorm:"default:''" json:"first_name"`
 	LastName       string    `gorm:"default:''" json:"last_name"`
 	Bio            string    `gorm:"default:''" json:"bio"`
@@ -40,9 +40,14 @@ type Profile struct {
 	UpdatedAt      time.Time `json:"updated_at"`
 }
 
+// Specify the table name
+func (Profile) TableName() string {
+	return "user_profiles"
+}
+
 type PasswordReset struct {
 	ID        uint       `gorm:"primaryKey" json:"id"`
-	UserID    uint       `gorm:"not null" json:"user_id"`
+	UserID    uint       `gorm:"not null;index" json:"user_id"`
 	Token     string     `gorm:"uniqueIndex;not null" json:"token"`
 	ExpiresAt time.Time  `gorm:"not null" json:"expires_at"`
 	UsedAt    *time.Time `json:"used_at"`
@@ -62,7 +67,6 @@ type Session struct {
 
 // ===== Methods =====
 
-// SetPassword hashes and sets the password
 func (u *User) SetPassword(rawPassword string) error {
 	if len(rawPassword) < 8 {
 		return errors.New("password must be at least 8 characters long")
@@ -78,7 +82,6 @@ func (u *User) SetPassword(rawPassword string) error {
 	return nil
 }
 
-// CheckPassword verifies the password
 func (u *User) CheckPassword(password string) bool {
 	return bcrypt.CompareHashAndPassword(
 		[]byte(u.Password),
@@ -86,7 +89,6 @@ func (u *User) CheckPassword(password string) bool {
 	) == nil
 }
 
-// AfterCreate hook: automatically create profile after user insert
 func (u *User) AfterCreate(tx *gorm.DB) error {
 	profile := &Profile{
 		UserID: u.ID,
@@ -94,12 +96,10 @@ func (u *User) AfterCreate(tx *gorm.DB) error {
 	return tx.Create(profile).Error
 }
 
-// IsPasswordResetTokenValid checks if token exists and is not expired
 func (prt *PasswordReset) IsValid() bool {
 	return prt.UsedAt == nil && time.Now().Before(prt.ExpiresAt)
 }
 
-// IsSessionValid checks if session is not expired
 func (s *Session) IsValid() bool {
 	return time.Now().Before(s.ExpiresAt)
 }

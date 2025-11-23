@@ -11,6 +11,7 @@ import (
 
 	"rideaware/internal/auth"
 	"rideaware/internal/config"
+	"rideaware/internal/equipment"
 	"rideaware/internal/middleware"
 	"rideaware/internal/user"
 	"rideaware/pkg/database"
@@ -19,7 +20,7 @@ import (
 func main() {
 	godotenv.Load()
 
-	// Initialize database connection
+	// Initialize database
 	database.Init()
 	defer database.Close()
 
@@ -29,6 +30,7 @@ func main() {
 		&user.Profile{},
 		&user.PasswordReset{},
 		&user.Session{},
+		&equipment.Equipment{},
 	); err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)
 	}
@@ -84,6 +86,16 @@ func setupRoutes(r *chi.Mux) {
 		userHandler := user.NewHandler()
 		r.Get("/profile", userHandler.GetProfile)
 		r.Put("/profile", userHandler.UpdateProfile)
+
+		// Equipment routes
+		equipmentHandler := equipment.NewHandler()
+		r.Post("/equipment", equipmentHandler.CreateEquipment)
+		r.Get("/equipment", equipmentHandler.GetEquipment)
+		r.Put("/equipment", equipmentHandler.UpdateEquipment)
+		r.Delete("/equipment", equipmentHandler.DeleteEquipment)
+
+		// Training zones
+		r.Get("/zones", equipmentHandler.GetTrainingZones)
 	})
 }
 
