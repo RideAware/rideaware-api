@@ -1,18 +1,20 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 
 	"rideaware/internal/auth"
 	"rideaware/internal/config"
 	"rideaware/internal/equipment"
-	"rideaware/internal/middleware"
+	"rideaware/internal/middlewares"
 	"rideaware/internal/user"
 	"rideaware/pkg/database"
 )
@@ -40,7 +42,13 @@ func main() {
 
 	r := chi.NewRouter()
 
-	// Middleware
+	// Logging middleware
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(loggingMiddleware)
+	r.Use(middleware.Recoverer)
+
+	// CORS middleware
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins: []string{"*"},
 		AllowedMethods: []string{
@@ -61,24 +69,39 @@ func main() {
 		port = "5000"
 	}
 
-	log.Printf("Server running on port %s", port)
+	log.Printf("🚀 Server running on port %s", port)
 	log.Fatal(http.ListenAndServe(":"+port, r))
+}
+
+// Logging middleware
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf(
+			"[%s] %s %s %s",
+			r.Method,
+			r.RequestURI,
+			r.RemoteAddr,
+			r.Header.Get("User-Agent"),
+		)
+		next.ServeHTTP(w, r)
+	})
 }
 
 func setupRoutes(r *chi.Mux) {
 	// Public routes
 	r.Get("/health", healthCheck)
 
-	// Auth routes - REMOVED /api/ prefix
+	// Auth routes
 	authHandler := auth.NewHandler()
 	r.Post("/signup", authHandler.Signup)
 	r.Post("/login", authHandler.Login)
 	r.Post("/logout", authHandler.Logout)
 	r.Post("/password-reset/request", authHandler.RequestPasswordReset)
 	r.Post("/password-reset/confirm", authHandler.ConfirmPasswordReset)
+	r.Post("/refresh-token", authHandler.RefreshToken)
 
-	// Protected routes - REMOVED /api/ prefix
-	authMiddleware := middleware.NewAuthMiddleware()
+	// Protected routes
+	authMiddleware := middlewares.NewAuthMiddleware()
 	r.Route("/protected", func(r chi.Router) {
 		r.Use(authMiddleware.ProtectedRoute)
 
@@ -97,9 +120,12 @@ func setupRoutes(r *chi.Mux) {
 		// Training zones
 		r.Get("/zones", equipmentHandler.GetTrainingZones)
 	})
+
+	log.Println("✅ Routes registered successfully")
 }
 
 func healthCheck(w http.ResponseWriter, r *http.Request) {
+	log.Println("📊 Health check called")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("OK"))
 }
