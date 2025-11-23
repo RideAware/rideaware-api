@@ -1,13 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 
@@ -43,10 +42,10 @@ func main() {
 	r := chi.NewRouter()
 
 	// Logging middleware
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
+	r.Use(chiMiddleware.RequestID)
+	r.Use(chiMiddleware.RealIP)
 	r.Use(loggingMiddleware)
-	r.Use(middleware.Recoverer)
+	r.Use(chiMiddleware.Recoverer)
 
 	// CORS middleware
 	r.Use(cors.Handler(cors.Options{
@@ -77,11 +76,10 @@ func main() {
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf(
-			"[%s] %s %s %s",
+			"[%s] %s %s",
 			r.Method,
 			r.RequestURI,
 			r.RemoteAddr,
-			r.Header.Get("User-Agent"),
 		)
 		next.ServeHTTP(w, r)
 	})
