@@ -122,16 +122,6 @@ cleanup_container() {
 	return 0
 }
 
-# Function to check if port is in use
-check_port() {
-	local port=$1
-	if lsof -i :$port &>/dev/null; then
-		return 0  # Port is in use
-	else
-		return 1  # Port is free
-	fi
-}
-
 echo -e "${BLUE}╔════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║        Building Podman Image           ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════╝${NC}"
@@ -159,14 +149,7 @@ if [ "$RUN_CONTAINER" = true ]; then
 	echo -e "${BLUE}║      Starting Container               ║${NC}"
 	echo -e "${BLUE}╚════════════════════════════════════════╝${NC}"
 
-	# Check if host port is in use
-	if check_port "$HOST_PORT"; then
-		echo -e "${RED}✗ Port $HOST_PORT is already in use${NC}"
-		echo -e "${YELLOW}Use a different port: $0 -t $IMAGE_TAG --run -p <PORT>${NC}"
-		exit 1
-	fi
-
-	# Cleanup existing container
+	# Cleanup existing container FIRST (before checking port)
 	if ! cleanup_container "$CONTAINER_NAME"; then
 		echo -e "${RED}✗ Failed to clean up existing container${NC}"
 		exit 1
