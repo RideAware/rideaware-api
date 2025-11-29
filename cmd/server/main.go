@@ -15,6 +15,7 @@ import (
 	"rideaware/internal/equipment"
 	"rideaware/internal/middleware"
 	"rideaware/internal/user"
+	"rideaware/internal/workout"
 	"rideaware/pkg/database"
 )
 
@@ -32,6 +33,10 @@ func main() {
 		&user.PasswordReset{},
 		&user.Session{},
 		&equipment.Equipment{},
+<<<<<<< HEAD
+=======
+		&workout.Workout{},
+>>>>>>> 64e8d77 (add routes back)
 	); err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)
 	}
@@ -117,6 +122,19 @@ func setupRoutes(r *chi.Mux) {
 
 		// Training zones
 		r.Get("/zones", equipmentHandler.GetTrainingZones)
+<<<<<<< HEAD
+=======
+
+		// Workout routes
+		workoutHandler := workout.NewHandler()
+		r.Post("/workouts", workoutHandler.CreateWorkout)
+		r.Get("/workouts", workoutHandler.GetWorkouts)
+		r.Get("/workouts/month", workoutHandler.GetWorkoutsByMonth)
+		r.Put("/workouts", workoutHandler.UpdateWorkout)
+		r.Delete("/workouts", workoutHandler.DeleteWorkout)
+		r.Get("/workout-types", workoutHandler.GetWorkoutTypes)
+		r.Post("/workouts/upload", workoutHandler.UploadWorkoutFile)
+>>>>>>> 64e8d77 (add routes back)
 	})
 
 	log.Println("✅ Routes registered successfully")
