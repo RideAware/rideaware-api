@@ -11,8 +11,10 @@ import (
 
 	"rideaware/internal/auth"
 	"rideaware/internal/config"
+	"rideaware/internal/equipment"
 	"rideaware/internal/middleware"
 	"rideaware/internal/user"
+	"rideaware/internal/workout"
 	"rideaware/pkg/database"
 )
 
@@ -29,6 +31,8 @@ func main() {
 		&user.Profile{},
 		&user.PasswordReset{},
 		&user.Session{},
+		&equipment.Equipment{},
+		&workout.Workout{},
 	); err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)
 	}
@@ -84,6 +88,26 @@ func setupRoutes(r *chi.Mux) {
 		userHandler := user.NewHandler()
 		r.Get("/profile", userHandler.GetProfile)
 		r.Put("/profile", userHandler.UpdateProfile)
+
+		// Equipment routes
+		equipmentHandler := equipment.NewHandler()
+		r.Post("/equipment", equipmentHandler.CreateEquipment)
+		r.Get("/equipment", equipmentHandler.GetEquipment)
+		r.Put("/equipment", equipmentHandler.UpdateEquipment)
+		r.Delete("/equipment", equipmentHandler.DeleteEquipment)
+
+		// Training zones
+		r.Get("/zones", equipmentHandler.GetTrainingZones)
+
+		// Workout routes
+		workoutHandler := workout.NewHandler()
+		r.Post("/workouts", workoutHandler.CreateWorkout)
+		r.Get("/workouts", workoutHandler.GetWorkouts)
+		r.Get("/workouts/month", workoutHandler.GetWorkoutsByMonth)
+		r.Put("/workouts", workoutHandler.UpdateWorkout)
+		r.Delete("/workouts", workoutHandler.DeleteWorkout)
+		r.Get("/workout-types", workoutHandler.GetWorkoutTypes)
+		r.Post("/workouts/upload", workoutHandler.UploadWorkoutFile)
 	})
 }
 
