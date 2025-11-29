@@ -33,10 +33,7 @@ func main() {
 		&user.PasswordReset{},
 		&user.Session{},
 		&equipment.Equipment{},
-<<<<<<< HEAD
-=======
 		&workout.Workout{},
->>>>>>> 64e8d77 (add routes back)
 	); err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)
 	}
