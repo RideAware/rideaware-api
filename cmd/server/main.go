@@ -129,8 +129,6 @@ func setupRoutes(r *chi.Mux) {
 
 		// Training zones
 		r.Get("/zones", equipmentHandler.GetTrainingZones)
-<<<<<<< HEAD
-=======
 
 		// Workout routes
 		workoutHandler := workout.NewHandler()
@@ -141,7 +139,6 @@ func setupRoutes(r *chi.Mux) {
 		r.Delete("/workouts", workoutHandler.DeleteWorkout)
 		r.Get("/workout-types", workoutHandler.GetWorkoutTypes)
 		r.Post("/workouts/upload", workoutHandler.UploadWorkoutFile)
->>>>>>> 64e8d77 (add routes back)
 	})
 
 	log.Println("✅ Routes registered successfully")
