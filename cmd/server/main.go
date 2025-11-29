@@ -89,27 +89,27 @@ func loggingMiddleware(next http.Handler) http.Handler {
 
 func setupRoutes(r *chi.Mux) {
 	r.Options("/*", func(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Accept, Authorization, Content-Type")
-	w.WriteHeader(http.StatusOK)
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Authorization, Content-Type")
+		w.WriteHeader(http.StatusOK)
 	})
 
 	// Public routes
 	r.Get("/health", healthCheck)
 
-	// Auth routes
+	// Auth routes (public - no /api prefix needed for these)
 	authHandler := auth.NewHandler()
-	r.Post("/signup", authHandler.Signup)
-	r.Post("/login", authHandler.Login)
-	r.Post("/logout", authHandler.Logout)
-	r.Post("/password-reset/request", authHandler.RequestPasswordReset)
-	r.Post("/password-reset/confirm", authHandler.ConfirmPasswordReset)
-	r.Post("/refresh-token", authHandler.RefreshToken)
+	r.Post("/api/signup", authHandler.Signup)
+	r.Post("/api/login", authHandler.Login)
+	r.Post("/api/logout", authHandler.Logout)
+	r.Post("/api/password-reset/request", authHandler.RequestPasswordReset)
+	r.Post("/api/password-reset/confirm", authHandler.ConfirmPasswordReset)
+	r.Post("/api/refresh-token", authHandler.RefreshToken)
 
 	// Protected routes
 	authMiddleware := middleware.NewAuthMiddleware()
-	r.Route("/protected", func(r chi.Router) {
+	r.Route("/api/protected", func(r chi.Router) {
 		r.Use(authMiddleware.ProtectedRoute)
 
 		// User routes
